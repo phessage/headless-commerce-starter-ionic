@@ -1,0 +1,26 @@
+.checkout {
+  margin: 1rem;
+}
+.checkout form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+}
+.checkout label {
+  display: grid;
+  gap: 0.25rem;
+}
+.checkout input,
+.checkout select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #718079;
+  border-radius: 0.35rem;
+  background: white;
+  color: #15241b;
+}
+.options {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
