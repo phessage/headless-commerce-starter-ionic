@@ -36,10 +36,10 @@ type Checkout = {
   ready: boolean;
   missing: string[];
 };
-const base = (import.meta.env.VITE_HEADLESS_API_URL ?? "").replace(/\/$/, "");
-const key = import.meta.env.VITE_HEADLESS_PUBLISHABLE_KEY ?? "";
+type Runtime = { storeId: string; apiUrl: string; publishableKey: string };
 function App() {
-  const [items, setItems] = useState<Product[]>([]),
+  const [runtime, setRuntime] = useState<Runtime | null>(null),
+    [items, setItems] = useState<Product[]>([]),
     [cart, setCart] = useState<Cart>({ items: [] }),
     [token, setToken] = useState(
       () => sessionStorage.getItem("headless-cart-token") ?? "",
@@ -49,14 +49,22 @@ function App() {
     [status, setStatus] = useState(""),
     [busy, setBusy] = useState(false);
   const headers = (cartToken?: string, json = false) => ({
-    ...(key ? { "x-publishable-key": key } : {}),
+    ...(runtime ? { "x-publishable-key": runtime.publishableKey } : {}),
     ...(cartToken ? { "x-cart-token": cartToken } : {}),
     ...(json ? { "content-type": "application/json" } : {}),
   });
   useEffect(() => {
-    fetch(base ? `${base}/v1/headless/products` : "/products.json", {
-      headers: headers(),
-    })
+    fetch("/headless-config.json", { cache: "no-store" })
+      .then((r) => r.json())
+      .then(async (config: { storeId: string; bootstrapUrl?: string }) => {
+        const bootstrap = (config.bootstrapUrl ?? "https://api.1ecomm.com").replace(/\/$/, "");
+        const response = await fetch(`${bootstrap}/v1/headless/stores/${encodeURIComponent(config.storeId)}/config`);
+        if (!response.ok) throw new Error("Store is not configured for headless commerce");
+        const value = (await response.json()).data as Runtime;
+        if (value.storeId !== config.storeId || !value.publishableKey.startsWith("pk_")) throw new Error("Invalid store bootstrap response");
+        setRuntime(value); return value;
+      })
+      .then((value) => fetch(`${value.apiUrl}/v1/headless/products`, { headers: { "x-publishable-key": value.publishableKey } }))
       .then((r) => {
         if (!r.ok) throw new Error("Catalog unavailable");
         return r.json();
@@ -65,8 +73,9 @@ function App() {
       .catch((e) => setError(e.message));
   }, []);
   async function ensureCart() {
+    if (!runtime) throw new Error("Store configuration is not ready");
     if (token) return token;
-    const response = await fetch(`${base}/v1/headless/carts`, {
+    const response = await fetch(`${runtime.apiUrl}/v1/headless/carts`, {
       method: "POST",
       headers: headers(),
     });
@@ -77,18 +86,12 @@ function App() {
     return value.cartToken as string;
   }
   async function add(product: Product) {
-    if (!base) {
-      setCart((value) => ({
-        items: [...value.items, { id: product.id, quantity: 1 }],
-      }));
-      setStatus("Synthetic demo only; configure a live sandbox for checkout");
-      return;
-    }
+    if (!runtime) return setError("Store configuration is not ready");
     setBusy(true);
     setError("");
     try {
       const current = await ensureCart();
-      const response = await fetch(`${base}/v1/headless/carts/current/items`, {
+      const response = await fetch(`${runtime.apiUrl}/v1/headless/carts/current/items`, {
         method: "POST",
         headers: headers(current, true),
         body: JSON.stringify({ productId: product.id, quantity: 1 }),
@@ -104,7 +107,7 @@ function App() {
   }
   async function prepare(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!base) return;
+    if (!runtime) return setError("Store configuration is not ready");
     setBusy(true);
     setError("");
     try {
@@ -120,7 +123,7 @@ function App() {
         country: String(data.get("country")),
       };
       const response = await fetch(
-        `${base}/v1/headless/carts/current/checkout`,
+        `${runtime.apiUrl}/v1/headless/carts/current/checkout`,
         {
           method: "PATCH",
           headers: headers(token, true),
@@ -148,9 +151,10 @@ function App() {
     kind: "shipping-method" | "payment-method",
     id: string,
   ) {
+    if (!runtime) return setError("Store configuration is not ready");
     if (!id) return;
     const response = await fetch(
-      `${base}/v1/headless/carts/current/checkout/${kind}`,
+      `${runtime.apiUrl}/v1/headless/carts/current/checkout/${kind}`,
       {
         method: "PUT",
         headers: headers(token, true),
