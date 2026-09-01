@@ -1,7 +1,21 @@
 # 1Ecomm Ionic + Capacitor Storefront Starter
 
-Hybrid web/iOS/Android reference storefront using Ionic React and the headless catalog, anonymous-cart, checkout-preparation and non-hosted pending-order preview. Run `npm install && npm run check`.
+This is a ready-to-run Ionic React shop designed for mobile-sized screens. It shows products, cart, guest checkout choices and a pending non-hosted order confirmation. It never charges a card or wallet.
 
-Change only `storeId` in `public/headless-config.json` to run the catalog, anonymous-cart and checkout-preparation app for another configured store. The app resolves the public runtime document at startup; never embed administrative secrets.
+## Run the web version
 
-`npm run test:e2e:live` runs the real fixture journey in a Pixel 7 browser profile. Native packaging, secure cart-token storage, deep links, signing and store submission remain separate release gates. Never clone production customer data into a demo environment.
+1. Install Node.js 20 or newer.
+2. Open `public/headless-config.json` and replace only `storeId` with your provisioned 1Ecomm store ID. The included ID is a safe test fixture.
+3. Run:
+
+```bash
+npm ci
+npm run check
+npm run dev
+```
+
+4. Open the local address printed by Vite. No source-code, API URL, or key change is required.
+
+`npm run check` builds and launches the app for a Pixel 7-profile browser test. `npm run test:e2e:live` creates an isolated fixture cart and pending bank-transfer test order against the deployed API. It does not move money.
+
+The browser build is qualified. Native secure token storage, deep links, Android/iOS packaging, signing, device installation and store submission are still separate release gates. Never add a secret API key to the app bundle.
