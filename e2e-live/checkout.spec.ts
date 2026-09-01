@@ -8,10 +8,11 @@ test("places and renders a real non-hosted order on the mobile surface", async (
   const added = page.waitForResponse(
     (r) =>
       r.url().endsWith("/v1/headless/carts/current/items") &&
-      r.status() === 201,
+      r.request().method() === "POST",
   );
   await add.click();
-  await added;
+  const addResponse = await added;
+  expect(addResponse.status(), await addResponse.text()).toBe(201);
   await expect(page.getByText("Cart 1")).toBeVisible();
   await page.getByLabel("First name").fill("Headless");
   await page.getByLabel("Last name").fill("Fixture");
