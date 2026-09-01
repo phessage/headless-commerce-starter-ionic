@@ -11,19 +11,19 @@
     "check": "npm run build && npm run test:e2e"
   },
   "dependencies": {
-    "@capacitor/core": "8.5.0",
+    "@capacitor/core": "8.5.1",
     "@ionic/react": "9.0.1",
     "@vitejs/plugin-react": "6.1.1",
-    "ionicons": "^8.0.13",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
+    "ionicons": "^8.1.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
     "vite": "8.2.2"
   },
   "devDependencies": {
     "@playwright/test": "1.62.1",
-    "@types/react": "^19.1.12",
-    "@types/react-dom": "^19.1.9",
-    "typescript": "^5.9.2"
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
+    "typescript": "^7.0.2"
   },
   "engines": {
     "node": ">=20.19"
