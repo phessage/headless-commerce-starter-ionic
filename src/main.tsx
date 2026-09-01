@@ -29,6 +29,7 @@ type Product = {
 type Cart = { items: Array<{ id: string; quantity: number }> };
 type Option = { id: string; name: string; capabilities?: { requiresHostedCheckout?: boolean; canPlaceOrder?: boolean } };
 type Order = { orderNumber: string; status: string; paymentStatus: string; requiresPayment: false };
+type OrderStatus = { orderNumber: string; status: string; paymentStatus: string; tracking: Record<string, unknown> | null };
 type Checkout = {
   shippingOptions: Option[];
   paymentMethods: Option[];
@@ -47,6 +48,7 @@ function App() {
     ),
     [checkout, setCheckout] = useState<Checkout | null>(null),
     [order, setOrder] = useState<Order | null>(null),
+    [orderStatus, setOrderStatus] = useState<OrderStatus | null>(null),
     [orderIntent, setOrderIntent] = useState(""),
     [error, setError] = useState(""),
     [status, setStatus] = useState(""),
@@ -182,6 +184,11 @@ function App() {
       setOrder((await response.json()).data); setStatus("Pending order placed");
     } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
   }
+  async function lookupOrder(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault(); if (!runtime) return setError("Store configuration is not ready"); setOrderStatus(null); setError("");
+    const data = new FormData(event.currentTarget); const response = await fetch(`${runtime.apiUrl}/v1/headless/orders/lookup`, { method: "POST", headers: headers(undefined, true), body: JSON.stringify({ orderNumber: data.get("orderNumber"), email: data.get("orderEmail") }) });
+    if (!response.ok) return setError("We could not find an order with those details"); setOrderStatus((await response.json()).data);
+  }
   return (
     <IonApp>
       <IonPage>
@@ -300,6 +307,10 @@ function App() {
               </IonCardContent>
             </IonCard>
           )}
+          <IonCard><IonCardHeader><IonCardTitle>Find your order</IonCardTitle></IonCardHeader><IonCardContent>
+            <p>Use the order number and email entered at checkout.</p><form onSubmit={lookupOrder}><label>Order number<input name="orderNumber" required /></label><label>Order email<input name="orderEmail" type="email" required /></label><IonButton type="submit" expand="block">Check order status</IonButton></form>
+            {orderStatus && <section aria-label="Order status"><h2>Order {orderStatus.orderNumber}</h2><p>Status: {orderStatus.status}</p><p>Payment: {orderStatus.paymentStatus}</p><p>{orderStatus.tracking ? "Tracking is available" : "Tracking is not available yet"}</p></section>}
+          </IonCardContent></IonCard>
         </IonContent>
       </IonPage>
     </IonApp>
