@@ -51,7 +51,17 @@ test("places and renders a real non-hosted order on the mobile surface", async (
   expect(body.data.requiresPayment).toBe(false); expect(body.data.paymentStatus).toBe("pending");
   console.log(`Ionic live order: ${body.data.orderNumber}`);
   await expect(page.getByRole("heading", { name: new RegExp(`Order ${body.data.orderNumber} placed`) })).toBeVisible();
-  await page.reload(); await page.getByLabel("Order number").fill(body.data.orderNumber); await page.getByLabel("Order email").fill("ionic-live@example.test");
-  const reopened = page.waitForResponse((r) => r.url().endsWith("/v1/headless/orders/lookup") && r.request().method() === "POST"); await page.getByRole("button", { name: "Check order status" }).click(); expect((await reopened).status()).toBe(201);
+  await page.reload();
+  await page.getByLabel("Order number").fill(body.data.orderNumber);
+  await page.getByLabel("Order email").fill("ionic-live@example.test");
+  const lookupButton = page.getByRole("button", { name: "Check order status" });
+  await expect(lookupButton).toBeEnabled();
+  const reopened = page.waitForResponse(
+    (r) =>
+      r.url().endsWith("/v1/headless/orders/lookup") &&
+      r.request().method() === "POST",
+  );
+  await lookupButton.click();
+  expect((await reopened).status()).toBe(201);
   await expect(page.getByRole("heading", { name: `Order ${body.data.orderNumber}` })).toBeVisible();
 });
