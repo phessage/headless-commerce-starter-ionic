@@ -27,7 +27,8 @@ type Product = {
   available: boolean;
 };
 type Cart = { items: Array<{ id: string; quantity: number }> };
-type Option = { id: string; name: string };
+type Option = { id: string; name: string; capabilities?: { requiresHostedCheckout?: boolean; canPlaceOrder?: boolean } };
+type Order = { orderNumber: string; status: string; paymentStatus: string; requiresPayment: false };
 type Checkout = {
   shippingOptions: Option[];
   paymentMethods: Option[];
@@ -45,6 +46,8 @@ function App() {
       () => sessionStorage.getItem("headless-cart-token") ?? "",
     ),
     [checkout, setCheckout] = useState<Checkout | null>(null),
+    [order, setOrder] = useState<Order | null>(null),
+    [orderIntent, setOrderIntent] = useState(""),
     [error, setError] = useState(""),
     [status, setStatus] = useState(""),
     [busy, setBusy] = useState(false);
@@ -168,6 +171,17 @@ function App() {
     setCheckout((await response.json()).data);
     setStatus(`${kind} selected`);
   }
+  async function placeOrder() {
+    if (!runtime || !checkout?.ready) return setError("Checkout is not ready");
+    const selected = checkout.paymentMethods.find((method) => method.id === checkout.selectedPaymentMethodId);
+    if (selected?.capabilities?.requiresHostedCheckout !== false || selected.capabilities.canPlaceOrder !== true) return setError("Choose a supported non-hosted payment method");
+    const intent = orderIntent || crypto.randomUUID(); setOrderIntent(intent); setBusy(true); setError("");
+    try {
+      const response = await fetch(`${runtime.apiUrl}/v1/headless/carts/current/checkout/order`, { method: "POST", headers: { ...headers(token), "Idempotency-Key": intent } });
+      if (!response.ok) { const problem = await response.json().catch(() => null) as { detail?: string; title?: string } | null; throw new Error(problem?.detail ?? problem?.title ?? `Order placement failed (${response.status})`); }
+      setOrder((await response.json()).data); setStatus("Pending order placed");
+    } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
+  }
   return (
     <IonApp>
       <IonPage>
@@ -181,7 +195,7 @@ function App() {
           <section>
             <small>IONIC + CAPACITOR</small>
             <h1>Outside is calling.</h1>
-            <p>Preparation only—no order placement or payment capture.</p>
+            <p>Capability-gated pending orders, without payment capture.</p>
           </section>
           {error && <p role="alert">{error}</p>}
           <p aria-live="polite">{status}</p>
@@ -279,6 +293,8 @@ function App() {
                         ))}
                       </select>
                     </label>
+                    {!order && <IonButton expand="block" disabled={!checkout.ready || busy} onClick={placeOrder}>Place pending order</IonButton>}
+                    {order && <section aria-label="Order confirmation"><h2>Order {order.orderNumber} placed</h2><p>Status: {order.status}</p><p>Payment: {order.paymentStatus}</p></section>}
                   </div>
                 )}
               </IonCardContent>
