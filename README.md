@@ -2,6 +2,8 @@
 
 This is a ready-to-run Ionic React shop designed for mobile-sized screens. It shows products, cart, guest checkout choices and a pending non-hosted order confirmation. It never charges a card or wallet.
 
+It fails closed when bootstrap or catalog APIs are unavailable; it never substitutes bundled products. Playwright provides request-scoped fixtures only inside tests.
+
 ## Run the web version
 
 1. Install Node.js 20 or newer.
