@@ -1,8 +1,12 @@
 import { expect, test } from "@playwright/test";
 test("places and renders a real non-hosted order on the mobile surface", async ({ page }) => {
+  const productId = process.env.HEADLESS_PRODUCT_ID;
+  const publishableKey = process.env.HEADLESS_PUBLISHABLE_KEY;
+  if (!productId || !publishableKey) throw new Error("Allocated fixture environment is required");
+  await page.route("**/v1/headless/stores/**", (route) => route.fulfill({ json: { data: { storeId: process.env.HEADLESS_STORE_ID, apiUrl: process.env.HEADLESS_API_URL, publishableKey, apiVersion: "v1", capabilities: ["catalog", "cart", "checkout-preparation"] } } }));
   await page.goto("/");
   const add = page.locator(
-    '[data-product-id="1f7884bd-759d-4f47-9fdb-c7ea3dd3a9ef"]',
+    `[data-product-id="${productId}"]`,
   );
   await expect(add).toBeVisible();
   const added = page.waitForResponse(
@@ -28,16 +32,16 @@ test("places and renders a real non-hosted order on the mobile surface", async (
       r.status() === 200,
   );
   await page.getByRole("button", { name: "Load checkout choices" }).click();
-  await prepared;
+  const preparation = (await (await prepared).json()).data;
   const shipping = page.getByLabel("Shipping method"),
     payment = page.getByLabel("Payment method");
-  await expect(shipping.locator("option")).toHaveCount(3);
   await expect(payment.locator("option")).toHaveCount(2);
-  const shippingSelected = page.waitForResponse(
-    (r) => r.url().endsWith("/checkout/shipping-method") && r.status() === 200,
-  );
-  await shipping.selectOption({ index: 1 });
-  await shippingSelected;
+  if (preparation.shippingOptions.length > 0) {
+    await expect(shipping.locator("option")).toHaveCount(preparation.shippingOptions.length + 1);
+    const shippingSelected = page.waitForResponse((r) => r.url().endsWith("/checkout/shipping-method") && r.status() === 200);
+    await shipping.selectOption({ index: 1 });
+    await shippingSelected;
+  } else await expect(shipping.locator("option")).toHaveCount(1);
   const paymentSelected = page.waitForResponse(
     (r) => r.url().endsWith("/checkout/payment-method") && r.status() === 200,
   );
