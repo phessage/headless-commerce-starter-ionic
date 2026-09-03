@@ -17,6 +17,10 @@ The browser journey is not native qualification. Do not claim Android/iOS readin
 - Test touch targets, keyboard avoidance, back navigation, offline/online transitions and screen readers.
 - Vite 8 requires Node 20.19+ or a supported newer line. Keep Capacitor packages on one compatible major and update native projects deliberately.
 
+## License boundary
+
+`LICENSE.md` allows authorized 1Ecomm customer projects and deployed or compiled shopper applications, but prohibits redistribution of this reusable starter or its derivatives. Preserve the notice in clones, packages, generated projects and documentation. Do not describe this repository as open source or grant broader rights in examples.
+
 ## Verification
 
 Run `rm -rf node_modules && npm ci`, `npm run check`, and the sandbox live web journey. Native changes also require Android/iOS sync/build and installed-device evidence. Missing native tooling is an explicit unverified boundary, not a green result.
