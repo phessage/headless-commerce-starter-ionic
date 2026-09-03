@@ -1,6 +1,7 @@
 {
   "name": "@phessage/headless-commerce-starter-ionic",
   "version": "0.1.0",
+  "license": "SEE LICENSE IN LICENSE.md",
   "private": true,
   "type": "module",
   "scripts": {
