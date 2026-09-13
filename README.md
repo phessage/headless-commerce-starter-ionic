@@ -1,5 +1,9 @@
 # 1Ecomm Ionic + Capacitor Storefront Starter
 
+<!-- 1ecomm-discovery -->
+> Part of **[1Ecomm headless commerce](https://www.1ecomm.com/headless-commerce)** — catalog, cart, checkout and order APIs for custom storefronts and apps.
+> Fastest start: `npm create @1ecomm/storefront@latest` · [CLI guide](https://www.1ecomm.com/headless-commerce/cli.html) · [OpenAPI contract](https://www.1ecomm.com/headless-commerce/openapi.yaml) · [All starters and SDKs](https://www.1ecomm.com/headless-commerce#starters)
+
 Free for authorized 1Ecomm customers and their developers to build and operate 1Ecomm-connected apps. You may distribute a compiled finished shopper app, but may not redistribute, resell, sublicense, mirror, or republish this starter or a reusable derivative. See [LICENSE.md](LICENSE.md).
 
 This is a ready-to-run Ionic React shop designed for mobile-sized screens. It shows products, cart, guest checkout choices and a pending non-hosted order confirmation. It never charges a card or wallet.

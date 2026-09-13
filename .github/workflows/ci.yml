@@ -11,12 +11,20 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npm run check
+      - name: Deployed journey skipped for a fork pull request
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository
+        run: echo "::notice::The deployed journey needs a fixture credential GitHub withholds from forks. A maintainer runs it when this change reaches main."
+      # GitHub withholds secrets from pull requests opened from forks, so the
+      # deployed journey cannot allocate a fixture there. It is skipped for forks
+      # by design and stays fail-closed for every trusted run, including main.
       - name: Allocate isolated deployed fixture
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         env: {HEADLESS_E2E_ALLOCATOR_TOKEN: '${{ secrets.HEADLESS_E2E_ALLOCATOR_TOKEN }}'}
         run: bash .github/scripts/headless-fixture.sh allocate
       - name: Run deployed browser order journey
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         run: npm run test:e2e:live
       - name: Release isolated deployed fixture
-        if: always()
+        if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
         env: {HEADLESS_E2E_ALLOCATOR_TOKEN: '${{ secrets.HEADLESS_E2E_ALLOCATOR_TOKEN }}'}
         run: bash .github/scripts/headless-fixture.sh release
