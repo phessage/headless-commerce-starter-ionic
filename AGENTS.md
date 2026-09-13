@@ -4,7 +4,7 @@ Read `README.md`, `docs/mobile-boundary.md`, `capacitor.config.ts`, `src/main.ts
 
 ## Boundary and contract
 
-This Ionic React 9 + Capacitor 8 project demonstrates web/mobile-shaped headless commerce. `public/headless-config.json` contains one `storeId`. The canonical API is `phessage/ecommerce-service/contracts/headless-commerce-v1.openapi.yaml`. Preserve server authority, key-derived tenancy, cart bearer-token secrecy, stable order idempotency and neutral order lookup. Use `items.length`; never invent `itemCount`.
+This Ionic React 9 + Capacitor 8 project demonstrates web/mobile-shaped headless commerce. `public/headless-config.json` contains one `storeId`. The canonical API is `https://www.1ecomm.com/headless-commerce/openapi.yaml`. Preserve server authority, key-derived tenancy, cart bearer-token secrecy, stable order idempotency and neutral order lookup. Use `items.length`; never invent `itemCount`.
 
 The browser journey is not native qualification. Do not claim Android/iOS readiness until secure storage, PKCE/deep links, network policy, packaging/signing, installed-device behavior and store submission are proven.
 
