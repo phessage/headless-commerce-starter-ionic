@@ -1,15 +1,22 @@
 name: CI
-on: [push, pull_request]
+on:
+  # Public repository on the organisation's self-hosted runners. Pull requests
+  # (including any from forks) never trigger a run: CI runs only for pushes to
+  # main, release tags and manual dispatch by a maintainer.
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
 permissions: {contents: read}
 jobs:
   browser:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: {node-version: 20, cache: npm}
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install chromium
       - run: npm run check
       - name: Deployed journey skipped for a fork pull request
         if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository
